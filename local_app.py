@@ -70,12 +70,13 @@ def run():
         LOGGER.debug(f'{symbol} - ' + r.df.tail(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
 
         # Check signal to open/close transaction
-        if r.action.upper() in ('OPEN',):
+        inv_mode = {'buy':"sell", 'sell':"buy"}.get(r.mode, 'wait')
+        if r.action.upper() in ('STOCH',):
             res = "OK"
             report.print_notify(f'>> Open trade: {symbol} at {ts} of {conf.volume} with {r.mode.upper()}, {res}')
-        elif r.action.upper() in ('CLOSE',):
+
             res = "OK"
-            report.print_notify(f'>> Close opened trades: {symbol} at {ts} with {r.mode.upper()}, {res}')
+            report.print_notify(f'>> Close opened trades: {symbol} at {ts} with {inv_mode.upper()}, {res}')
 
 
 if __name__ == '__main__':
