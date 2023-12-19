@@ -49,20 +49,20 @@ class Fx:
         cols = self.candles.columns.to_list()
         col_stk = {'name': c for c in cols if c.startswith('STOCHk')}
         if not col_stk:
-            return 'Stay', 'NA'
+            return 'stay', 'na'
         self.candles = _add_signal(self.candles, col_stk['name'], xa=80, xb=20)
         # actual evaluate
         cols = self.candles.columns.to_list()
         col_a = {'name': c for c in cols if c.startswith('STOCH') and ('_A_' in c)}
         col_b = {'name': c for c in cols if c.startswith('STOCH') and ('_B_' in c)}
         if not col_a or not col_b:
-            return 'Stay', 'NA'
+            return 'stay', 'na'
         last_ind = self.candles[[col_a['name'], col_b['name']]].iloc[-2:].values.tolist()  # [[0, 0], [1, 0]]
         bit_array = sum(last_ind, start=[])                                                 # [0, 0, 1, 0]
         if sum(bit_array) == 1:
             bit_position = sum([n * (i + 1) for i, n in enumerate(bit_array)])
-            if bit_position == 1: return 'Stoch', 'sell'
-            if bit_position == 2: return 'Stoch', 'buy'
+            if bit_position == 1: return 'stoch', 'sell'
+            if bit_position == 2: return 'stoch', 'buy'
             # if bit_position == 3: return 'Close', 'buy'
             # if bit_position == 4: return 'Close', 'sell'
-        return 'Stay', 'Wait'
+        return 'stay', 'wait'
