@@ -11,6 +11,7 @@ class Result:
         self.symbol = symbol
         self.market_status = False
         self.df = DataFrame()
+        self.digits = 5
         self.epoch_ms = 0
         self.price = 0.0
         self.action = ''
@@ -50,6 +51,7 @@ class Result:
         from signals import Fx
         fx = Fx(algo=conf.algorithm, tech=conf.tech)
         self.action, self.mode = fx.evaluate(candles)
+        self.digits = digits
         self.df = fx.candles
         self.price = self.df.iloc[-1]['close']
         self.epoch_ms = self.df.iloc[-1]['ctm']
@@ -76,7 +78,7 @@ def run():
         if not r.action:
             continue
         ts = report.setts(datetime.fromtimestamp(int(r.epoch_ms)/1000))
-        report.print_notify(f'\nSignal: {symbol}, {ts}, {r.action}, {r.mode.upper()}, {r.price}')
+        report.print_notify(f'\nSignal: {symbol}, {r.action}, {r.mode.upper()}, {r.price} at {ts}')
         LOGGER.debug(f'{symbol} - ' + r.df.tail(2).head(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
         LOGGER.debug(f'{symbol} - ' + r.df.tail(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
 
@@ -85,11 +87,11 @@ def run():
         if r.action in ('stoch',):
             res = trigger_open_trade(client, symbol=symbol, mode=r.mode)
             report.print_notify(
-                f'>> Open trade: {symbol} at {ts} of {conf.volume} with {r.mode.upper()}, {res}'
+                f'>> {symbol}: Open-{r.mode.upper()} by {conf.volume} at {ts}, {res}'
             )
             res = trigger_close_trade(client, symbol=symbol, mode=inv_mode)
             report.print_notify(
-                f'>> Close trades: {symbol} at {ts} with {inv_mode.upper()}, {res}'
+                f'>> {symbol}: Close-{inv_mode.upper()} at {ts}, {res}'
             )
 
     store_trade_rec(client, conf.race_name)
