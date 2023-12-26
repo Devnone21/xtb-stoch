@@ -28,11 +28,11 @@ class Result:
         try:
             cache = Cache()
             for ctm in rate_infos:
-                cache.set_key(f'{self.symbol}_{conf.period}:{ctm["ctm"]}', ctm)
+                cache.set_key(f'{conf.race_mode}_{self.symbol}_{conf.period}:{ctm["ctm"]}', ctm)
             ctm_prefix = range(((now - conf.period*60*400) // 100_000), (now // 100_000)+1)
             rate_infos = []
             for pre in ctm_prefix:
-                mkey = cache.client.keys(pattern=f'{self.symbol}_{conf.period}:{pre}*')
+                mkey = cache.client.keys(pattern=f'{conf.race_mode}_{self.symbol}_{conf.period}:{pre}*')
                 rate_infos.extend(cache.get_keys(mkey))
         except ConnectionError as e:
             LOGGER.error(e)
@@ -61,7 +61,7 @@ def run():
     client = Client()
     client.login(conf.race_name, conf.race_pass, mode=conf.race_mode)
     gcp = Cloud()
-    report = Notify(title=f'[{conf.algorithm.upper()}_{conf.period}]')
+    report = Notify(title=f'[{conf.race_mode}-{conf.algorithm}-{conf.period}]'.upper())
     LOGGER.debug('Enter the Gate.')
 
     # Check if market is open
@@ -78,7 +78,7 @@ def run():
         if not r.action:
             continue
         ts = report.setts(datetime.fromtimestamp(int(r.epoch_ms)/1000))
-        report.print_notify(f'\nSignal: {symbol}, {r.action}, {r.mode.upper()}, {r.price} at {ts}')
+        LOGGER.info(f'Signal: {symbol}, {r.action}, {r.mode.upper()}, {r.price} at {ts}')
         LOGGER.debug(f'{symbol} - ' + r.df.tail(2).head(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
         LOGGER.debug(f'{symbol} - ' + r.df.tail(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
 

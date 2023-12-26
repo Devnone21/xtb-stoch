@@ -27,11 +27,11 @@ class Result:
         try:
             cache = Cache()
             for ctm in rate_infos:
-                cache.set_key(f'{self.symbol}_{conf.period}:{ctm["ctm"]}', ctm)
+                cache.set_key(f'{conf.race_mode}_{self.symbol}_{conf.period}:{ctm["ctm"]}', ctm)
             ctm_prefix = range(((now - conf.period*60*400) // 100_000), (now // 100_000)+1)
             rate_infos = []
             for pre in ctm_prefix:
-                mkey = cache.client.keys(pattern=f'{self.symbol}_{conf.period}:{pre}*')
+                mkey = cache.client.keys(pattern=f'{conf.race_mode}_{self.symbol}_{conf.period}:{pre}*')
                 rate_infos.extend(cache.get_keys(mkey))
         except ConnectionError as e:
             LOGGER.error(e)
@@ -67,18 +67,15 @@ def run():
         if not r.action:
             continue
         ts = report.setts(datetime.fromtimestamp(int(r.epoch_ms)/1000))
-        report.print_notify(f'\nSignal: {symbol}, {r.action}, {r.mode.upper()}, {r.price} at {ts}')
+        LOGGER.info(f'Signal: {symbol}, {r.action}, {r.mode.upper()}, {r.price} at {ts}')
         LOGGER.debug(f'{symbol} - ' + r.df.tail(2).head(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
         LOGGER.debug(f'{symbol} - ' + r.df.tail(1).iloc[:, [0, 1, -4, -3, -2, -1]].to_string(header=False))
 
         # Check signal to open/close transaction
         inv_mode = {'buy':"sell", 'sell':"buy"}.get(r.mode, 'wait')
         if r.action.upper() in ('STOCH',):
-            res = "OK"
-            report.print_notify(f'>> {symbol}: Open-{r.mode.upper()} by {conf.volume} at {ts}, {res}')
-
-            res = "OK"
-            report.print_notify(f'>> {symbol}: Close-{inv_mode.upper()} at {ts}, {res}')
+            report.print_notify(f'>> {symbol}: Open-{r.mode.upper()} by {conf.volume} at {ts}, OK.')
+            report.print_notify(f'>> {symbol}: Close-{inv_mode.upper()} at {ts}, OK.')
 
 
 if __name__ == '__main__':
